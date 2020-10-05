@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en" class="h-100">
+
+<head>
+    <meta charset="utf-8">
+    <meta n a m e="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description " content="">
+    <meta name="author" content="Akash Dalvi">
+    <title>Gradle dependency manager</title>
+    <link rel="canonical" href="https://boredkeyboards.tech/posts/gradle-dependency-manager">
+    <link href="../../helpers/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../../helpers/prism/prism.css" rel="stylesheet">
+
+    <link href="index.css" rel="stylesheet">
+</head>
+
+<body class="d-flex flex-column h-100">
+    <header>
+        <div class="navbar navbar-dark bg-dark shadow-sm">
+            <div class="container d-flex justify-content-between">
+                <a href="https://boredkeyboards.tech" class="navbar-brand d-flex align-items-center">
+                    <strong>Bored Keyboards</strong>
+                </a>
+            </div>
+        </div>
+    </header>
+    <main role="main" class="flex-shrink-0">
+        <h1 class="lead py-3 text-center">Gradle a dependency manager</h1>
+        <div class="container">
+            <p>
+                In this post we'll see the need of a dependency manager and how gradle can be used to do that.
+                <br> We'll cover:
+                <br>
+            </p>
+            <nav>
+                <ol>
+                    <li>
+                        <a href="#whyGradle">
+                            Why Gradle (Why dependency management)<br>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#setGradle">
+                            Set Gradle (Gradle environment)<br>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#doGradle">
+                            Do Gradle (Getting dependencies with Gradle)
+                        </a>
+                    </li>
+                </ol>
+            </nav>
+            <div id="whyGradle" class="">
+                <h3>Why Gradle</h3>
+                <p>
+                    Gradle is a build-automation tool which can do many things and dependency management is just one of them.
+                    <br> But why we a dependency management tool?
+                    <br> Consider this java code,
+                </p>
+                <pre><code class="lang-clike">import org.apache.commons.lang3.StringUtils;
+public class something{
+    public static void main(String[] args){
+        System.out.println(StringUtils.swapCase("this is something"));
+    }
+}</code></pre>
+                <p>
+                    This code uses the method swapCase from class StringUtils. the developers who developed stringUtils
+                    class also developed some other useful classes and packed them in a jar file. Now that jar file is
+                    available in the mavenCentral repository (
+                    <a href="https://mvnrepository.com/artifact/org.apache.commons/commons-lang3/3.0"
+                        target="_blank">here</a> 
+                    ). You can get that jar put it in the same folder with something.java and execute commands like
+                    <pre><code class="lang-clike">running command--   javac -cp .;commons-lang3-3.3.2.jar something.java  -- you can compile the something.java
+running command--   java -cp .;commons-lang3-3.3.2.jar something    -- you can execute the something.class</code></pre>
+                    Here is the thing now,
+                    <br> When you are working on something big, it's likely that you'll use like 10-20 class files from
+                    different packages. Moreover if you are working on two or more projects concurrently, the other
+                    projects will also have dependencies.I am not saying you can't do it it's just that it won't hurt 
+                    if we have a simple system which does these things for you.
+                    <br> Now Gradle is a tool which can do these things for us.
+                    <br>
+                </p>
+            </div>
+            <div id="setGradle">
+                <h3>Set Gradle</h3>
+                <p>
+                    You can get gradle
+                    <a href="https://gradle.org/next-steps/?version=6.5&amp;format=bin" target="_blank">here</a> . Unzip
+                    this file anywhere you want. You'll see a bin folder in it. Now set the following things:
+                </p>
+                <ul>
+                    <li>
+                        Add path of the bin folder in environment variable 'Path'(left image)
+                    </li>
+                    <li>
+                        Add a environment variable <mark>GRADLE_USER_HOME</mark> with path of any folder you want.(right image)
+                    </li>
+                </ul>
+                <br>
+               <a target="blank" href="./res/settingEnvironment.png"><img class="img-responsive"src="./res/settingEnvironment.png" style="width:100%" 
+            alt="Adding gradle to environment variables"></a>
+                <p>
+                    By default, <mark>GRADLE_USER_HOME</mark> variable is set to your 'users' directory. But to understand the
+                    things you can set the variable to any folder. When we use gradle first time a folder '.gradle' is
+                    created in <mark>GRADLE_USER_HOME</mark>. So there are two main folders
+                    gradle does it's things in:
+                    <br> 1. Gradle folder with binaries(the one you unzipped).
+                    <br> 2. '.gradle' folder in<mark>GRADLE_USER_HOME</mark>.
+                    <br>
+                </p>
+            </div>
+            <div id="doGradle">
+                <h3>Do Gradle</h3>
+                <p>
+                    The task is we want to get the StringUtils dependency. (with gradle of course)
+                    <br> Here is something.java again.
+                </p>
+                <pre><code class="lang-clike">import org.apache.commons.lang3.StringUtils;
+public class something{
+    public static void main(String[] args){
+        System.out.println(StringUtils.swapCase("this is something"));
+    }
+}</code></pre>
+                <p>
+                    To use gradle (after
+                    <a href="#setGradle">setting it</a> 
+                    ) we need to create 'build.gradle' text file in the same folder with something.java. Here is the file with 
+                    comments explaining each line.
+                </p>
+<pre><code class="lang-clike">// by applying a plugin we increase the things gradle can do.
+plugins {
+    id 'java' // allows gradle to use commands like 'javac'.
+    id 'application' // allows gradle to actually invoke(run) main method of the specified mainClass.
+
+repositories{
+    mavenCentral() //maven central is the repository(a online folder thing) from which we get the required dependency.
+}
+dependencies{
+    implementation "org.apache.commons:commons-lang3:3.3.2" // To get the jar file in which we have the StringUtils.class.
+}
+sourceSets{ 
+    main.java.srcDir "." // the specify the directory in which something.java is located. "." means current directory.
+                // By default it is "./src/main/java".
+}
+application {
+    mainClassName = 'something' // specifying the main class for application plugin to run.
+}</code></pre>
+                <p>
+                    Now by running
+                    <code>gradle build</code> 
+                    in cmd, gradle get's the dependency from mavenCentral repository in it's cache folder located at
+                    <mark>GRADLE_USER_HOME/.gradle/caches/modules-2/files-2.1</mark> 
+                    ( It'll differ for your version of gradle). And generates the something.class in
+                    <mark>CURRENT_DIR/build/classes/java/main/something.class</mark>.
+                    <br> Also by running
+                    <code>gradle run</code> 
+                    in cmd, gradle uses it's application plugin's 'run' task and invokes the main method in something class.
+                </p>
+                <p>
+                    That's how dependency management works in gradle. We can declare 'n' no. of dependencies from 'n'
+                    no. of repositories without worrying about a thing. Also if any other project uses any of the
+                    already downloaded dependencies, gradle just gets it in the it's cache folder.
+                    <br> Dependency management is just one of the things that gradle can do. In my opinion the 'Gradle'
+                    makes a lot of sense if it is introduced as just a dependency manager and then with all the other
+                    capabilities.
+                    <br> Hope this helped you.
+                    <br> Adios!
+                </p>
+            </div>
+        </div>
+    </main>
+    <footer class="footer mt-auto py-3">
+        <div class="container">
+            <span class="text-muted">Links</span>
+            <a class="footer-link" href="">Github</a>
+            <a href="" class="footer-link">LinkedIn</a>
+        </div>
+    </footer>
+    <script src="../../helpers/prism/prism.js"></script>
+</body>
+
+</html>
